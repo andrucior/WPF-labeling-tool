@@ -1,0 +1,119 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0-windows7.0": {
+      "Microsoft.VisualStudio.Setup.Configuration.Interop/3.10.2154": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Microsoft.VisualStudio.Setup.Configuration.Interop.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Microsoft.VisualStudio.Setup.Configuration.Interop.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/Microsoft.VisualStudio.Setup.Configuration.Interop.targets": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.VisualStudio.Setup.Configuration.Interop/3.10.2154": {
+      "sha512": "spd07AGnhaWt+/0TtO2kAD7cmnYg1eMqRwd9eTFkEE+Iic0se/ncF498pQ4TtKIAFbjV5bHHTBa65HjgBR5bBw==",
+      "type": "package",
+      "path": "microsoft.visualstudio.setup.configuration.interop/3.10.2154",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/Microsoft.VisualStudio.Setup.Configuration.Interop.targets",
+        "lib/net35/Microsoft.VisualStudio.Setup.Configuration.Interop.dll",
+        "lib/net35/Microsoft.VisualStudio.Setup.Configuration.Interop.xml",
+        "lib/netstandard2.1/Microsoft.VisualStudio.Setup.Configuration.Interop.dll",
+        "lib/netstandard2.1/Microsoft.VisualStudio.Setup.Configuration.Interop.xml",
+        "microsoft.visualstudio.setup.configuration.interop.3.10.2154.nupkg.sha512",
+        "microsoft.visualstudio.setup.configuration.interop.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0-windows7.0": [
+      "Microsoft.VisualStudio.Setup.Configuration.Interop >= 3.10.2154"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\andrz\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\andrz\\source\\repos\\wpf_3\\wpf_3\\wpf_3.csproj",
+      "projectName": "wpf_3",
+      "projectPath": "C:\\Users\\andrz\\source\\repos\\wpf_3\\wpf_3\\wpf_3.csproj",
+      "packagesPath": "C:\\Users\\andrz\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\andrz\\source\\repos\\wpf_3\\wpf_3\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\andrz\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0-windows"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "D:\\andrz\\Downloads\\FlightTrackerGUI_dotnet8\\net8.0": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0-windows7.0": {
+          "targetAlias": "net8.0-windows",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0-windows7.0": {
+        "targetAlias": "net8.0-windows",
+        "dependencies": {
+          "Microsoft.VisualStudio.Setup.Configuration.Interop": {
+            "target": "Package",
+            "version": "[3.10.2154, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          },
+          "Microsoft.WindowsDesktop.App.WPF": {
+            "privateAssets": "none"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.300/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
