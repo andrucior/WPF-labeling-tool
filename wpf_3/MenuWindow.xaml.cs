@@ -4,19 +4,24 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace wpf2
 {
     public partial class MenuWindow : Window
     {
         public ObservableCollection<MyImage> Images { get; set; }
+        public ObservableCollection<MyImage> ChosenImages { get; set; }
         public MyImage SelectedImage { get; set; }
 
         public MenuWindow()
         {
             InitializeComponent();
             Images = new ObservableCollection<MyImage>();
+            ChosenImages = new ObservableCollection<MyImage>();
             DataContext = this;
 
             if (Directory.Exists(Directory.GetCurrentDirectory() + "\\resources\\uploaded_images"))
@@ -30,7 +35,7 @@ namespace wpf2
 
         private void ClickMenu(object sender, MouseButtonEventArgs e)
         {
-            MainWindow mainWindow = new MainWindow();
+            MainWindow mainWindow = new MainWindow(ChosenImages);
             mainWindow.Show();
             mainWindow.Visibility = Visibility.Visible;
             this.Close();
@@ -58,11 +63,41 @@ namespace wpf2
                     MyImage image = new MyImage()
                     {
                         Name = file.Name,
-                        Uri = destFilePath
+                        Uri = destFilePath,
+                        Origin = file.FullName,
                     };
                     Images.Add(image);
                 }
             }
+        }
+
+        private void moveImage(object sender, RoutedEventArgs e)
+        {
+            foreach (var im in ImageList.SelectedItems)
+            {
+                var img = im as MyImage;
+                ChosenImages.Add(img);
+            }
+            if (ChosenImages.Count > 0) StartLabelingButton.IsEnabled = true;
+            else StartLabelingButton.IsEnabled = false;
+        }
+
+        private void deleteImage(object sender, RoutedEventArgs e)
+        {
+            var img = ImageList.SelectedItem as MyImage;
+            ChosenImages.Remove(img);
+        }
+
+        private void ChangePreview(object sender, RoutedEventArgs e)
+        {
+            var uri = sender as Button;
+            PreviewImage.Source = new BitmapImage(new Uri((string)uri.Content));
+        }
+
+        private void StartLabeling(object sender, RoutedEventArgs e)
+        {
+            MainWindow mainWindow = new MainWindow(ChosenImages);
+            mainWindow.Show();
         }
     }
 
@@ -70,5 +105,6 @@ namespace wpf2
     {
         public string Name { get; set; }
         public string Uri { get; set; }
+        public string Origin { get; set; }
     }
 }

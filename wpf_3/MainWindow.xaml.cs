@@ -16,9 +16,10 @@ namespace wpf2
     {
         private ObservableCollection<LabelItem> labels;
         private Point? StartPoint;
-        private Rectangle Rect;
-        private Brush Selected;
-        private LabelItem LabelWithMenu;
+        private Rectangle? Rect;
+        private Brush? Selected;
+        private LabelItem? LabelWithMenu;
+        public ObservableCollection<MyImage> Images { get; set; }
         public ObservableCollection<LabelItem> Labels
         {
             get { return labels; }
@@ -33,9 +34,16 @@ namespace wpf2
         {
             InitializeComponent();
             Labels = new ObservableCollection<LabelItem>();
+            Images = new ObservableCollection<MyImage>();
             DataContext = this;
         }
-
+        public MainWindow(ObservableCollection<MyImage> images)
+        {
+            InitializeComponent();
+            Labels = new ObservableCollection<LabelItem>();
+            DataContext = this;
+            Images = images;
+        }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Random rand = new Random();
@@ -147,6 +155,8 @@ namespace wpf2
                 LabelWithMenu = null; 
             }
         }
+
+        
     }
 
     public class LabelItem
@@ -169,6 +179,23 @@ namespace wpf2
                 return label1;
             }
             return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class ImgToUri : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+
+            if (value is MyImage tmp)
+            {
+                return tmp.Uri;
+            }
+            return string.Empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

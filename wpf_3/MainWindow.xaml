@@ -11,6 +11,7 @@
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <local:LabelConv x:Key="labelConv" />
+        <local:ImgToUri x:Key="ImgToUri" />
         
         <ContextMenu x:Key="MenuTemplate">
             <MenuItem Header="Edit" Click="EditCommand" />
@@ -22,7 +23,9 @@
             <Button Background="{Binding Background}" Content="{Binding Content}" Width="Auto" Height="Auto" 
                     Click="ColorSelect" MouseRightButtonDown="ShowContextMenu"/>
         </DataTemplate>
-        
+        <DataTemplate x:Key="ImageItemTemplate">
+            <Image Width="50" Height="50" Source="{Binding Uri}"/>
+        </DataTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -36,6 +39,18 @@
                 <ColumnDefinition Width="800" />
                 <ColumnDefinition Width="300" />
             </Grid.ColumnDefinitions>
+            <ListBox Grid.Column="0" 
+                     ItemsSource="{Binding Images}"
+                     ItemTemplate="{StaticResource ImageItemTemplate}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     Name="ImageList">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
             <Grid Grid.Column="1" Background="Transparent">
                 <Canvas Name="DrawingCanvas" 
                     MouseDown="MouseDownOnIm" 
@@ -44,7 +59,7 @@
                     Width="800">
                     <Canvas.Resources>
                         <ImageBrush x:Key="Image"
-                       ImageSource="C:\Users\andrz\source\repos\wpf_3\wpf_3\resources\road_example_image.jpg"/>
+                       ImageSource="{Binding ElementName=ImageList, Path=SelectedItem, Converter={StaticResource ImgToUri}}"/>
                     </Canvas.Resources>
                     <Canvas.Background>
                         <StaticResource ResourceKey="Image"/>
