@@ -12,13 +12,13 @@
     <Window.Resources>
         <local:LabelConv x:Key="labelConv" />
         <local:ImgToUri x:Key="ImgToUri" />
-        
+
         <ContextMenu x:Key="MenuTemplate">
             <MenuItem Header="Edit" Click="EditCommand" />
             <MenuItem Header="Remove" Click="RemoveCommand" />
         </ContextMenu>
-        
-        
+
+
         <DataTemplate x:Key="LabelTemplate">
             <Button Background="{Binding Background}" Content="{Binding Content}" Width="Auto" Height="Auto" 
                     Click="ColorSelect" MouseRightButtonDown="ShowContextMenu"/>
@@ -26,6 +26,12 @@
         <DataTemplate x:Key="ImageItemTemplate">
             <Image Width="50" Height="50" Source="{Binding Uri}"/>
         </DataTemplate>
+        <ControlTemplate x:Key="validationTemplate">
+            <DockPanel>
+                <TextBlock Foreground="Red" FontSize="20">!</TextBlock>
+                <AdornedElementPlaceholder/>
+            </DockPanel>
+        </ControlTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -44,7 +50,8 @@
                      ItemTemplate="{StaticResource ImageItemTemplate}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     Name="ImageList">
+                     Name="ImageList"
+                     SelectionChanged="EnableDisable">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -87,21 +94,69 @@
                             <Button Grid.Column="1" Width="70" Margin="10" Content="Add Label" Click="Button_Click"/>
                         </Grid>
                     </Canvas>
-                    <ListView
-                            Grid.Row="1"
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="50"/>
+                        </Grid.RowDefinitions>
+                        <GroupBox Header="Export Settings" Margin="0,580,0,-13" Grid.RowSpan="2">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="*"/>
+                                
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Export: " Margin="0,0,37,0"/>
+                                <Button Grid.Row="0" Content="Choose Folder" Grid.ColumnSpan="3" Margin="187,0,0,0" Click="ChooseFolderClick"/>
+                                <TextBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1">
+                                    <TextBox.Text>
+                                        <Binding Path="ChosenDir" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <local:InvalidPathRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="Validation.ErrorTemplate" Value="{StaticResource validationTemplate}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="Validation.HasError" Value="True">
+                                                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                            </Grid>
+                        </GroupBox>
+
+                        <ListView
                             ItemsSource="{Binding Labels}"
                             Name="listView"
-                            ItemTemplate="{StaticResource LabelTemplate}"  
-                            Height="660"
+                            ItemTemplate="{StaticResource LabelTemplate}"
                             VerticalContentAlignment="Top"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollBarVisibility="Auto">
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
-                    </ListView>
+                            ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="0,0,0,31" RenderTransformOrigin="0.5,0.5">
+                            <ListView.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleY="-1"/>
+                                    <SkewTransform/>
+                                    <RotateTransform/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </ListView.RenderTransform>
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                        </ListView>
+
+                    </Grid>
                 </Grid>
             </GroupBox>
         </Grid>
@@ -114,11 +169,17 @@
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Height="40" Width="100" 
                         IsEnabled="False"
-                        HorizontalAlignment="Left" Margin="10,0,0,10">Previous Image</Button>
-                <Button Grid.Column="1" Height="40" IsEnabled="False" Margin="690,0,10,10">Next Image</Button>
+                        HorizontalAlignment="Left" Margin="10,0,0,10"
+                        Click="PrevClick"
+                        Name="PrevButton">Previous Image</Button>
+                <Button Grid.Column="1" Height="40" IsEnabled="False" Margin="690,0,10,10"
+                        Click="NextClick"
+                        Name="NextButton">Next Image</Button>
                 <Button Grid.Column="2" Height="40" Width="100" IsEnabled="False"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Top" Margin="190,0,0,0" RenderTransformOrigin="1.442,0.72">Finish Labeling</Button>
+                        VerticalAlignment="Top" Margin="190,0,0,0" RenderTransformOrigin="1.442,0.72"
+                        Click="FinishClick"
+                        Name="FinishButton">Finish Labeling</Button>
             </Grid>
         </StackPanel>
     </Grid>

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,6 +20,7 @@ namespace wpf2
         private Rectangle? Rect;
         private Brush? Selected;
         private LabelItem? LabelWithMenu;
+        private string? ChosenDir;
         public ObservableCollection<MyImage> Images { get; set; }
         public ObservableCollection<LabelItem> Labels
         {
@@ -72,7 +74,7 @@ namespace wpf2
                 MessageBox.Show("Choose color first!");
                 return;
             }
-            
+
             Rect = new Rectangle
             {
                 Stroke = Selected,
@@ -105,7 +107,7 @@ namespace wpf2
             Canvas.SetLeft(Rect, x);
             Canvas.SetTop(Rect, y);
         }
-    
+
 
         private void Image_Loaded(object sender, RoutedEventArgs e)
         {
@@ -151,12 +153,53 @@ namespace wpf2
         {
             if (LabelWithMenu != null)
             {
-                Labels.Remove(LabelWithMenu); 
-                LabelWithMenu = null; 
+                Labels.Remove(LabelWithMenu);
+                LabelWithMenu = null;
             }
         }
 
-        
+        private void PrevClick(object sender, RoutedEventArgs e)
+        {
+            int i = ImageList.SelectedIndex;
+            if (i == -1) return;
+            ImageList.SelectedIndex = i - 1;
+        }
+
+        private void FinishClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void NextClick(object sender, RoutedEventArgs e)
+        {
+            int i = ImageList.SelectedIndex;
+            if (i == -1) return;
+            ImageList.SelectedIndex = i + 1;
+        }
+
+        private void EnableDisable(object sender, SelectionChangedEventArgs e)
+        {
+            if (ImageList.Items.Count == 1) return;
+
+            if (ImageList.SelectedIndex <= 0) PrevButton.IsEnabled = false;
+            else PrevButton.IsEnabled = true;
+
+            if (ImageList.SelectedIndex == Images.Count - 1) NextButton.IsEnabled = false;
+            else NextButton.IsEnabled = true;
+        }
+
+        private void ChooseFolderClick(object sender, RoutedEventArgs e)
+        {
+            var dlg = new FolderPicker();
+            dlg.InputPath = @"c:\users";
+
+            if (dlg.ShowDialog() == true)
+            {
+                ChosenDir = dlg.ResultPath;
+
+            }
+
+        }
     }
 
     public class LabelItem
@@ -203,4 +246,18 @@ namespace wpf2
             throw new NotImplementedException();
         }
     }
+    public class InvalidPathRule : ValidationRule
+    {
+        public override ValidationResult Validate(object value,
+        CultureInfo cultureInfo)
+        {
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+                return new ValidationResult(false, "Path cannot be empty.");
+
+            if (!Directory.Exists(value.ToString()))
+                return new ValidationResult(false, "Given directory does not exist");
+            return ValidationResult.ValidResult;
+        }
+    }
 }
+    
