@@ -25,3 +25,4 @@ C:\Users\andrz\source\repos\wpf_3\wpf_3\obj\Debug\net8.0-windows\refint\wpf_3.dl
 C:\Users\andrz\source\repos\wpf_3\wpf_3\obj\Debug\net8.0-windows\wpf_3.pdb
 C:\Users\andrz\source\repos\wpf_3\wpf_3\obj\Debug\net8.0-windows\wpf_3.genruntimeconfig.cache
 C:\Users\andrz\source\repos\wpf_3\wpf_3\obj\Debug\net8.0-windows\ref\wpf_3.dll
+C:\Users\andrz\source\repos\wpf_3\wpf_3\obj\Debug\net8.0-windows\wpf_3_Content.g.cs

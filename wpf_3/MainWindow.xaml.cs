@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -17,7 +18,6 @@ namespace wpf2
     {
         // TODO:
         // FINISH_CLICK
-        // EXPORT I ZAPIS
         // POPRAWA MENU ETYKIETY
         // 
         private ObservableCollection<LabelItem> labels;
@@ -27,6 +27,7 @@ namespace wpf2
         private string? SelectedLabel;
         private LabelItem? LabelWithMenu;
         private string ChosenDir;
+        private TextBox? SelectedButton;
         private List<(CroppedBitmap bitmap, string label)> CroppedBitmaps { get; set; }
         public ObservableCollection<MyImage> Images { get; set; }
         public ObservableCollection<LabelItem> Labels
@@ -65,7 +66,7 @@ namespace wpf2
 
             var labelItem = new LabelItem
             {
-                Content = Textbox.Text,
+                Content = MyTextbox.Text,
                 Background = brush
             };
             Labels.Add(labelItem);
@@ -141,29 +142,38 @@ namespace wpf2
 
         private void ColorSelect(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
+            var button = sender as TextBox;
             Selected = button.Background;
-            SelectedLabel = button.Content.ToString();
+            SelectedLabel = button.Text;
         }
 
         private void ShowContextMenu(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             // TODO: do poprawy
-
-            if (!(sender is FrameworkElement element) || !(element.DataContext is LabelItem item))
-                return;
-
-            var template = FindResource("MenuTemplate") as ContextMenu;
-            if (template == null) return;
-            template.PlacementTarget = element;
-            template.DataContext = item;
-            template.IsOpen = true;
-            LabelWithMenu = sender as LabelItem;
+            ContextMenu = (ContextMenu)Resources["MenuTemplate"];
+            var tmp = (TextBox)sender;
+            SelectedButton = tmp;
+            foreach (var label in Labels)
+            {
+                if (tmp.Text == label.Content)
+                {
+                    LabelWithMenu = label;
+                    break;
+                }    
+            }
         }
 
         private void EditCommand(object sender, RoutedEventArgs e)
         {
-
+            SelectedButton.IsReadOnly = false; 
+        }
+        private void EnterPressed(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                SelectedButton.IsReadOnly = true;
+                SelectedButton.IsReadOnlyCaretVisible = false;
+            }
         }
 
         private void RemoveCommand(object sender, RoutedEventArgs e)

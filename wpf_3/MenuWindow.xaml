@@ -42,7 +42,7 @@
                 </MenuItem>
 
                 <MenuItem Header="Labeling">
-                    <MenuItem Header="Start labeling"/>
+                    <MenuItem Header="Start labeling" IsEnabled="False" Name="StartLabelingMenu"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
@@ -75,6 +75,7 @@
         <GroupBox Grid.Column="2" Grid.Row="1" Header="Chosen Items" BorderThickness="1" BorderBrush="Gray">
             <ListBox ItemsSource="{Binding ChosenImages}"
                      ItemTemplate="{StaticResource ChosenTemplate}"
+                     SelectedItem="{Binding ChosenSelectedImage, Mode=TwoWay}"
                      Name="ChosenList"/>
         </GroupBox>
         <Image Source="resources/no_preview_image.png" Grid.Column="3" Grid.Row="1" Margin="5"

@@ -14,14 +14,26 @@
         <local:ImgToUri x:Key="ImgToUri" />
 
         <ContextMenu x:Key="MenuTemplate">
-            <MenuItem Header="Edit" Click="EditCommand" />
-            <MenuItem Header="Remove" Click="RemoveCommand" />
+            <MenuItem Header="Edit" 
+                      Click="EditCommand"
+                      CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+            <MenuItem Header="Remove" 
+                      Click="RemoveCommand" 
+                      CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
         </ContextMenu>
 
 
         <DataTemplate x:Key="LabelTemplate">
-            <Button Background="{Binding Background}" Content="{Binding Content}" Width="Auto" Height="Auto" 
-                    Click="ColorSelect" MouseRightButtonDown="ShowContextMenu"/>
+            <TextBox Text="{Binding Content}"
+                           IsReadOnly="True"
+                           PreviewMouseDown="ColorSelect"
+                           Background="{Binding Background}"
+                           Width="Auto" Height="Auto"
+                           PreviewMouseRightButtonDown="ShowContextMenu"
+                           Name="LabelTextBox"
+                           Padding="5"
+                           KeyDown="EnterPressed"
+                     />
         </DataTemplate>
         <DataTemplate x:Key="ImageItemTemplate">
             <Image Width="50" Height="50" Source="{Binding Uri}"/>
@@ -89,7 +101,7 @@
                                 <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Margin="10" Width="180" Name="Textbox"/>
+                            <TextBox Grid.Column="0" Margin="10" Width="180" Name="MyTextbox"/>
                             <Button Grid.Column="1" Width="70" Margin="10" Content="Add Label" Click="Button_Click"/>
                         </Grid>
                     </Canvas>

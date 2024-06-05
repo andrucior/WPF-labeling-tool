@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,6 +17,9 @@ namespace wpf2
         public ObservableCollection<MyImage> Images { get; set; }
         public ObservableCollection<MyImage> ChosenImages { get; set; }
         public MyImage SelectedImage { get; set; }
+        public MyImage ChosenSelectedImage { get; set; }
+        private MyImage ParentFolder { get; set; }
+        private MyImage CurrentFolder { get; set; }
 
         public MenuWindow()
         {
@@ -48,13 +52,30 @@ namespace wpf2
 
             if (dlg.ShowDialog() == true)
             {
+                ParentFolder = new MyImage()
+                {
+                    Name = "..",
+                    Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                    Origin = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png")
+                };
+
+                CurrentFolder = new MyImage()
+                {
+                    Name = dlg.ResultPath,
+                    Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                    Origin = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png")
+                };
+                
+                Images.Add(ParentFolder);
+                Images.Add(CurrentFolder);
+                
                 var info = new DirectoryInfo(dlg.ResultPath);
                 FileInfo[] imageFiles = info.GetFiles("*.*", SearchOption.AllDirectories)
                                                          .Where(file => file.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
                                                                         file.Extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                                                                         file.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
                                                          .ToArray();
-
+               
                 foreach (var file in imageFiles)
                 {
                     string destFilePath = Path.Combine(Directory.GetCurrentDirectory(), "resources\\uploaded_images", file.Name);
@@ -73,23 +94,48 @@ namespace wpf2
 
         private void moveImage(object sender, RoutedEventArgs e)
         {
-            foreach (var im in ImageList.SelectedItems)
-            {
-                var img = im as MyImage;
-                ChosenImages.Add(img);
-            }
-            if (ChosenImages.Count > 0) StartLabelingButton.IsEnabled = true;
-            else StartLabelingButton.IsEnabled = false;
+
+            var img = ImageList.SelectedItem as MyImage;
+            ChosenImages.Add(img);
+            Images.Remove(img);
+
+            if (ChosenImages.Count > 0)
+                StartLabelingButton.IsEnabled = true;
+           
+            StartLabelingMenu.IsEnabled = StartLabelingButton.IsEnabled;
         }
 
         private void deleteImage(object sender, RoutedEventArgs e)
         {
-            var img = ImageList.SelectedItem as MyImage;
-            ChosenImages.Remove(img);
+            var toMove = ChosenList.SelectedItem as MyImage;
+            ChosenImages.Remove(toMove);
+            Images.Add(toMove);
+
+            if (ChosenImages.Count == 0)
+            {
+                StartLabelingButton.IsEnabled = false;
+                PreviewImage.Source = new BitmapImage(new Uri(Path.Combine(Directory.GetCurrentDirectory(), "resources\\no_preview_image.png")));
+            }
+            else
+            {
+                ChosenList.SelectedItem = ChosenImages[0];
+                PreviewImage.Source = new BitmapImage(new Uri(ChosenImages[0].Uri));
+            }
+            StartLabelingMenu.IsEnabled = StartLabelingButton.IsEnabled;
+            
         }
+        
 
         private void ChangePreview(object sender, RoutedEventArgs e)
         {
+            var button = (Button)sender;
+            string check = Convert.ToString(button.Content);
+            foreach (var img in ChosenImages)
+            {
+                if (img.Origin == Convert.ToString(button.Content))
+                    ChosenList.SelectedItem = img;
+            }
+            
             var uri = sender as Button;
             PreviewImage.Source = new BitmapImage(new Uri((string)uri.Content));
         }
@@ -99,6 +145,8 @@ namespace wpf2
             MainWindow mainWindow = new MainWindow(ChosenImages);
             mainWindow.Show();
         }
+
+        
     }
 
     public class MyImage
