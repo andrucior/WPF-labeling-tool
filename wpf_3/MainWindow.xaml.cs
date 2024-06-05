@@ -15,12 +15,19 @@ namespace wpf2
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        // TODO:
+        // FINISH_CLICK
+        // EXPORT I ZAPIS
+        // POPRAWA MENU ETYKIETY
+        // 
         private ObservableCollection<LabelItem> labels;
         private Point? StartPoint;
         private Rectangle? Rect;
         private Brush? Selected;
+        private string? SelectedLabel;
         private LabelItem? LabelWithMenu;
-        private string? ChosenDir;
+        private string ChosenDir;
+        private List<(CroppedBitmap bitmap, string label)> CroppedBitmaps { get; set; }
         public ObservableCollection<MyImage> Images { get; set; }
         public ObservableCollection<LabelItem> Labels
         {
@@ -37,12 +44,16 @@ namespace wpf2
             InitializeComponent();
             Labels = new ObservableCollection<LabelItem>();
             Images = new ObservableCollection<MyImage>();
+            ChosenDir = string.Empty;
+            CroppedBitmaps = new List<(CroppedBitmap, string)>();
             DataContext = this;
         }
         public MainWindow(ObservableCollection<MyImage> images)
         {
             InitializeComponent();
             Labels = new ObservableCollection<LabelItem>();
+            ChosenDir = string.Empty;
+            CroppedBitmaps = new List<(CroppedBitmap, string)>();
             DataContext = this;
             Images = images;
         }
@@ -88,6 +99,11 @@ namespace wpf2
 
         private void drawRect(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            RenderTargetBitmap rtb = new RenderTargetBitmap((int)DrawingCanvas.RenderSize.Width,
+            (int)DrawingCanvas.RenderSize.Height, 96d, 96d, System.Windows.Media.PixelFormats.Default);
+            rtb.Render(DrawingCanvas);
+            var crop = new CroppedBitmap(rtb, new Int32Rect((int)Canvas.GetLeft(Rect), (int)Canvas.GetTop(Rect), (int)Rect.Width, (int)Rect.Height));
+            CroppedBitmaps.Add((crop, SelectedLabel));
             Rect = null;
         }
 
@@ -127,6 +143,7 @@ namespace wpf2
         {
             var button = sender as Button;
             Selected = button.Background;
+            SelectedLabel = button.Content.ToString();
         }
 
         private void ShowContextMenu(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -163,11 +180,35 @@ namespace wpf2
             int i = ImageList.SelectedIndex;
             if (i == -1) return;
             ImageList.SelectedIndex = i - 1;
+        
         }
 
         private void FinishClick(object sender, RoutedEventArgs e)
         {
+            RenderTargetBitmap rtb = new RenderTargetBitmap((int)DrawingCanvas.RenderSize.Width,
+            (int)DrawingCanvas.RenderSize.Height, 96d, 96d, System.Windows.Media.PixelFormats.Default);
+            rtb.Render(DrawingCanvas);
 
+            int i = 0;
+            string path;
+            foreach (var crop in CroppedBitmaps)
+            {
+                BitmapEncoder pngEncoder = new PngBitmapEncoder();
+                pngEncoder.Frames.Add(BitmapFrame.Create(crop.bitmap));
+                
+                if (!Directory.Exists(PathTextBox.Text))
+                    Directory.CreateDirectory(PathTextBox.Text);
+                do
+                {
+                    path = System.IO.Path.Combine(PathTextBox.Text, crop.label + $"_{i++}.png");
+                } while (File.Exists(path));
+
+                using (var fs = System.IO.File.OpenWrite(path))
+                {
+                    pngEncoder.Save(fs);
+                }
+            }
+            this.Close();
         }
 
         private void NextClick(object sender, RoutedEventArgs e)
@@ -196,7 +237,8 @@ namespace wpf2
             if (dlg.ShowDialog() == true)
             {
                 ChosenDir = dlg.ResultPath;
-
+                PathTextBox.Text = ChosenDir;
+                FinishButton.IsEnabled = true;
             }
 
         }
