@@ -3,6 +3,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Security;
 using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,7 +46,46 @@ namespace wpf2
             mainWindow.Visibility = Visibility.Visible;
             this.Close();
         }
+        private void MoveToParent()
+        {
+            try
+            {
+                var di = new DirectoryInfo(ParentFolder.Origin).Parent;
+                if (di != null)
+                {
+                    Images.Clear();
+                    CurrentFolder.Origin = ParentFolder.Origin;
+                    CurrentFolder.Name = ParentFolder.Origin;
+                    ParentFolder.Origin = di.FullName;
 
+                    Images.Add(ParentFolder);
+                    // Images.Add(CurrentFolder);
+
+                    var info = new DirectoryInfo(CurrentFolder.Origin);
+                    FileInfo[] imageFiles = info.GetFiles("*.*", SearchOption.TopDirectoryOnly)
+                                                             .Where(file => file.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                                            file.Extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                                                            file.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
+                                                             .ToArray();
+                    foreach (var file in imageFiles)
+                    {
+                        string destFilePath = Path.Combine(Directory.GetCurrentDirectory(), "resources\\uploaded_images", file.Name);
+
+                        MyImage image = new MyImage()
+                        {
+                            Name = file.Name,
+                            Uri = file.FullName,
+                            Origin = file.FullName,
+                        };
+                        Images.Add(image);
+                    }
+                }
+            }
+            catch (SecurityException)
+            { MessageBox.Show("You don't have access to this directory!"); }
+            
+
+        }
         private void LoadDatasetClick(object sender, RoutedEventArgs e)
         {
             var dlg = new FolderPicker();
@@ -52,25 +93,37 @@ namespace wpf2
 
             if (dlg.ShowDialog() == true)
             {
-                ParentFolder = new MyImage()
-                {
-                    Name = "..",
-                    Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
-                    Origin = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png")
-                };
-
-                CurrentFolder = new MyImage()
-                {
-                    Name = dlg.ResultPath,
-                    Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
-                    Origin = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png")
-                };
-                
-                Images.Add(ParentFolder);
-                Images.Add(CurrentFolder);
-                
+                var di = new DirectoryInfo(dlg.ResultPath).Parent;
                 var info = new DirectoryInfo(dlg.ResultPath);
-                FileInfo[] imageFiles = info.GetFiles("*.*", SearchOption.AllDirectories)
+
+                if (di != null)
+                {
+                    ParentFolder = new MyImage()
+                    {
+                        Name = "..",
+                        Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                        Origin = di.FullName
+                    };
+                    CurrentFolder = new MyImage()
+                    {
+                        Name = di.Name,
+                        Origin = di.FullName
+                    };
+                    Images.Add(ParentFolder);
+                }
+                
+                foreach(var dir in info.EnumerateDirectories())
+                {
+                    var dir_im = new MyImage()
+                    {
+                        Name = dir.Name,
+                        Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                        Origin = dir.FullName
+                    };
+                    Images.Add(dir_im);
+                }
+
+                FileInfo[] imageFiles = info.GetFiles("*.*", SearchOption.TopDirectoryOnly)
                                                          .Where(file => file.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
                                                                         file.Extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                                                                         file.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
@@ -78,13 +131,13 @@ namespace wpf2
                
                 foreach (var file in imageFiles)
                 {
-                    string destFilePath = Path.Combine(Directory.GetCurrentDirectory(), "resources\\uploaded_images", file.Name);
-                    File.Copy(file.FullName, destFilePath, true);
+                    // string destFilePath = Path.Combine(Directory.GetCurrentDirectory(), "resources\\uploaded_images", file.Name);
+                    // File.Copy(file.FullName, destFilePath, true);
 
                     MyImage image = new MyImage()
                     {
                         Name = file.Name,
-                        Uri = destFilePath,
+                        Uri = file.FullName,
                         Origin = file.FullName,
                     };
                     Images.Add(image);
@@ -146,7 +199,69 @@ namespace wpf2
             mainWindow.Show();
         }
 
-        
+        private void ChangeFolder(object sender, MouseButtonEventArgs e)
+        {
+            var img = ImageList.SelectedItem as MyImage;
+            if (img == null) return;
+            if (img.Name == "..")
+                MoveToParent();
+            else if (Directory.Exists(img.Origin))
+                MoveToChild(img.Origin);
+
+        }
+        private void MoveToChild(string dir_name)
+        {
+            Images.Clear();
+            var di = new DirectoryInfo(dir_name).Parent;
+            var info = new DirectoryInfo(dir_name);
+
+            if (di != null)
+            {
+                ParentFolder = new MyImage()
+                {
+                    Name = "..",
+                    Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                    Origin = di.FullName
+                };
+                CurrentFolder = new MyImage()
+                {
+                    Name = dir_name,
+                    Origin = dir_name,
+                };
+                Images.Add(ParentFolder);
+            }
+
+            foreach (var dir in info.EnumerateDirectories())
+            {
+                var dir_im = new MyImage()
+                {
+                    Name = dir.Name,
+                    Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                    Origin = dir.FullName
+                };
+                Images.Add(dir_im);
+            }
+
+            FileInfo[] imageFiles = info.GetFiles("*.*", SearchOption.TopDirectoryOnly)
+                                                     .Where(file => file.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                                    file.Extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                                                    file.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
+                                                     .ToArray();
+
+            foreach (var file in imageFiles)
+            {
+                // string destFilePath = Path.Combine(Directory.GetCurrentDirectory(), "resources\\uploaded_images", file.Name);
+                // File.Copy(file.FullName, destFilePath, true);
+
+                MyImage image = new MyImage()
+                {
+                    Name = file.Name,
+                    Uri = file.FullName,
+                    Origin = file.FullName,
+                };
+                Images.Add(image);
+            }
+        }
     }
 
     public class MyImage

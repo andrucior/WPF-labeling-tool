@@ -14,7 +14,7 @@
                     <RowDefinition Height="50"/>
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Image Grid.Row="0" Width="50" Height="50" Stretch="Fill" Source="{Binding Uri}"/>
+                <Image Grid.Row="0" Width="50" Height="50" Stretch="Fill" Source="{Binding Uri}" />
                 <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="{Binding Name}" FontSize="9"/>
             </Grid>
         </DataTemplate>
@@ -52,7 +52,8 @@
                      Name="ImageList"
                      ItemTemplate="{StaticResource PreviewTemplate}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     MouseDoubleClick="ChangeFolder">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />

@@ -75,13 +75,11 @@
                     MouseDown="MouseDownOnIm" 
                     MouseUp="drawRect" 
                     MouseMove="MouseMoveOnIm">
-                    <Canvas.Resources>
-                        <ImageBrush x:Key="Image"
-                       ImageSource="{Binding ElementName=ImageList, Path=SelectedItem, Converter={StaticResource ImgToUri}}"/>
-                    </Canvas.Resources>
-                    <Canvas.Background>
-                        <StaticResource ResourceKey="Image"/>
-                    </Canvas.Background>
+                    <Image
+                       Source="{Binding ElementName=ImageList, Path=SelectedItem, Converter={StaticResource ImgToUri}}"
+                        MaxWidth="800" MaxHeight="734" Name="ImageOnCanvas"/>
+
+
                     <Path Stroke="Red">
                         <Path.Data>
                             <RectangleGeometry x:Name="selectionRect"/>
@@ -119,11 +117,12 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*"/>
                                     <ColumnDefinition Width="*"/>
-                                
+
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Export: " Margin="0,0,37,0"/>
-                                <Button Grid.Row="0" Content="Choose Folder" Grid.ColumnSpan="3" Margin="187,0,0,0" Click="ChooseFolderClick"/>
+                                <Button Grid.Row="0" Content="Choose Folder" Grid.Column="1" Click="ChooseFolderClick"  Height="20" Width="90" VerticalAlignment="Top"/>
                                 <TextBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Name="PathTextBox">
+               
                                     <TextBox.Text>
                                         <Binding Path="ChosenDir" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
@@ -180,7 +179,7 @@
                         Name="NextButton">Next Image</Button>
                 <Button Grid.Column="2" Height="40" Width="100" IsEnabled="False"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Top" Margin="190,0,0,0" RenderTransformOrigin="1.442,0.72"
+                        VerticalAlignment="Top" Margin="182,0,0,0" RenderTransformOrigin="1.442,0.72"
                         Click="FinishClick"
                         Name="FinishButton">Finish Labeling</Button>
             </Grid>
