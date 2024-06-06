@@ -77,7 +77,7 @@
                     MouseMove="MouseMoveOnIm">
                     <Image
                        Source="{Binding ElementName=ImageList, Path=SelectedItem, Converter={StaticResource ImgToUri}}"
-                        MaxWidth="800" MaxHeight="734" Name="ImageOnCanvas"/>
+                        MaxWidth="800" MaxHeight="600" Name="ImageOnCanvas"/>
 
 
                     <Path Stroke="Red">

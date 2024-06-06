@@ -62,6 +62,16 @@ namespace wpf2
                     // Images.Add(CurrentFolder);
 
                     var info = new DirectoryInfo(CurrentFolder.Origin);
+                    foreach (var dir in info.EnumerateDirectories())
+                    {
+                        var dir_im = new MyImage()
+                        {
+                            Name = dir.Name,
+                            Uri = Path.Combine(Directory.GetCurrentDirectory(), "resources\\folder_icon.png"),
+                            Origin = dir.FullName
+                        };
+                        Images.Add(dir_im);
+                    }
                     FileInfo[] imageFiles = info.GetFiles("*.*", SearchOption.TopDirectoryOnly)
                                                              .Where(file => file.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
                                                                             file.Extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
@@ -88,6 +98,7 @@ namespace wpf2
         }
         private void LoadDatasetClick(object sender, RoutedEventArgs e)
         {
+            Images.Clear();
             var dlg = new FolderPicker();
             dlg.InputPath = @"c:\users";
 
@@ -127,8 +138,7 @@ namespace wpf2
                                                          .Where(file => file.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
                                                                         file.Extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                                                                         file.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
-                                                         .ToArray();
-               
+                                                         .ToArray();      
                 foreach (var file in imageFiles)
                 {
                     // string destFilePath = Path.Combine(Directory.GetCurrentDirectory(), "resources\\uploaded_images", file.Name);
@@ -147,8 +157,10 @@ namespace wpf2
 
         private void moveImage(object sender, RoutedEventArgs e)
         {
-
             var img = ImageList.SelectedItem as MyImage;
+            
+            if (img == null) return;
+            if (img.Name == ".." || Directory.Exists(img.Origin)) return;
             ChosenImages.Add(img);
             Images.Remove(img);
 
@@ -161,6 +173,8 @@ namespace wpf2
         private void deleteImage(object sender, RoutedEventArgs e)
         {
             var toMove = ChosenList.SelectedItem as MyImage;
+            if (toMove == null) return;
+
             ChosenImages.Remove(toMove);
             Images.Add(toMove);
 
@@ -182,6 +196,8 @@ namespace wpf2
         private void ChangePreview(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
+            if (button == null) return;
+
             string check = Convert.ToString(button.Content);
             foreach (var img in ChosenImages)
             {
@@ -203,6 +219,7 @@ namespace wpf2
         {
             var img = ImageList.SelectedItem as MyImage;
             if (img == null) return;
+
             if (img.Name == "..")
                 MoveToParent();
             else if (Directory.Exists(img.Origin))

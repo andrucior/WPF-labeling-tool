@@ -42,7 +42,7 @@
                 </MenuItem>
 
                 <MenuItem Header="Labeling">
-                    <MenuItem Header="Start labeling" IsEnabled="False" Name="StartLabelingMenu"/>
+                    <MenuItem Header="Start labeling" IsEnabled="False" Name="StartLabelingMenu" Click="StartLabeling"/>
                 </MenuItem>
             </Menu>
         </DockPanel>

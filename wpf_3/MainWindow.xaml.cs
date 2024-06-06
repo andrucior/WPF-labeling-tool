@@ -199,6 +199,33 @@ namespace wpf2
             if (LabelWithMenu != null)
             {
                 Labels.Remove(LabelWithMenu);
+                List<(Rectangle, LabelItem)> tmp = new List<(Rectangle, LabelItem)>();
+                foreach (var img in Images)
+                {
+                    var rects = RectanglesOfImage[img];
+                    foreach (var (rect, label) in  rects)
+                    {
+                        if (label.Content != LabelWithMenu.Content)
+                            tmp.Add((rect, label));
+                    }
+                    rects.Clear();
+                    rects.AddRange(tmp);
+                }
+                Dictionary<(CroppedBitmap, string), MyImage> tmp2 = new Dictionary<(CroppedBitmap, string), MyImage>();
+                
+                foreach (var pair in CroppedBitmaps)
+                {
+                    if(pair.Key.label != LabelWithMenu.Content)
+                    {
+                        tmp2.Add(pair.Key, pair.Value);
+                    }
+                }
+                CroppedBitmaps.Clear();
+                CroppedBitmaps = tmp2;
+                DrawingCanvas.Children.Clear();
+                DrawingCanvas.Children.Add(ImageOnCanvas);
+                foreach (var rect in RectanglesOfImage[SelectedImage])
+                    DrawingCanvas.Children.Add(rect.Item1);
                 LabelWithMenu = null;
             }
         }
