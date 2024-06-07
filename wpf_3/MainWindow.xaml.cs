@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -31,6 +33,7 @@ namespace wpf2
         private string ChosenDir;
         private TextBox? SelectedButton;
         private MyImage? SelectedImage;
+        private string? OldContent;
         private Dictionary<(CroppedBitmap bitmap, string label), MyImage> CroppedBitmaps { get; set; }
         private Dictionary<MyImage, List<(Rectangle, LabelItem)>> RectanglesOfImage { get; set; }
         public ObservableCollection<MyImage> Images { get; set; }
@@ -59,10 +62,10 @@ namespace wpf2
             Labels = new ObservableCollection<LabelItem>();
             ChosenDir = string.Empty;
             CroppedBitmaps = new Dictionary<(CroppedBitmap bitmap, string label), MyImage>();
-            RectanglesOfImage = new Dictionary<MyImage, List<(Rectangle, LabelItem)>> ();
+            RectanglesOfImage = new Dictionary<MyImage, List<(Rectangle, LabelItem)>>();
             DataContext = this;
             Images = images;
-            foreach (var image in Images) 
+            foreach (var image in Images)
             {
                 RectanglesOfImage.Add(image, new List<(Rectangle, LabelItem)>());
             }
@@ -109,21 +112,25 @@ namespace wpf2
 
         private void drawRect(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            RenderTargetBitmap rtb = new RenderTargetBitmap((int)DrawingCanvas.RenderSize.Width,
-            (int)DrawingCanvas.RenderSize.Height, 96d, 96d, System.Windows.Media.PixelFormats.Default);
-            rtb.Render(DrawingCanvas);
-            var crop = new CroppedBitmap(rtb, new Int32Rect((int)Canvas.GetLeft(Rect), (int)Canvas.GetTop(Rect), (int)Rect.Width, (int)Rect.Height));
-            CroppedBitmaps.Add((crop, SelectedLabel), SelectedImage);
-            foreach(var item in labels)
+            try
             {
-                if (item.Content == SelectedLabel)
+                RenderTargetBitmap rtb = new RenderTargetBitmap((int)DrawingCanvas.RenderSize.Width,
+                (int)DrawingCanvas.RenderSize.Height, 96d, 96d, System.Windows.Media.PixelFormats.Default);
+                rtb.Render(DrawingCanvas);
+                var crop = new CroppedBitmap(rtb, new Int32Rect((int)Canvas.GetLeft(Rect), (int)Canvas.GetTop(Rect), (int)Rect.Width, (int)Rect.Height));
+                CroppedBitmaps.Add((crop, SelectedLabel), SelectedImage);
+                foreach (var item in labels)
                 {
-                    RectanglesOfImage[SelectedImage].Add((Rect, item));
-                    break;
+                    if (item.Content == SelectedLabel)
+                    {
+                        RectanglesOfImage[SelectedImage].Add((Rect, item));
+                        break;
+                    }
                 }
+
+                Rect = null;
             }
-            
-            Rect = null;
+            catch (System.ArgumentException) { }
         }
 
         private void MouseMoveOnIm(object sender, System.Windows.Input.MouseEventArgs e)
@@ -177,13 +184,14 @@ namespace wpf2
                 {
                     LabelWithMenu = label;
                     break;
-                }    
+                }
             }
         }
 
         private void EditCommand(object sender, RoutedEventArgs e)
         {
-            SelectedButton.IsReadOnly = false; 
+            OldContent = SelectedButton.Text;
+            SelectedButton.IsReadOnly = false;
         }
         private void EnterPressed(object sender, KeyEventArgs e)
         {
@@ -191,9 +199,48 @@ namespace wpf2
             {
                 SelectedButton.IsReadOnly = true;
                 SelectedButton.IsReadOnlyCaretVisible = false;
+                var tmp = new Dictionary<(CroppedBitmap, string), MyImage>();
+                foreach (var pair in CroppedBitmaps)
+                {
+                    if (pair.Key.label != OldContent)
+                    {
+                        tmp.Add(pair.Key, pair.Value);
+                    }
+                    else
+                    {
+                        tmp.Add((pair.Key.bitmap, SelectedButton.Text), pair.Value);
+                    }
+                }
+                CroppedBitmaps.Clear();
+                foreach (var pair in tmp)
+                {
+                    CroppedBitmaps.Add(pair.Key, pair.Value);
+                }
+                List<(Rectangle, LabelItem)> tmp2 = new List<(Rectangle, LabelItem)>();
+                foreach (var img in Images)
+                {
+                    var rects = RectanglesOfImage[img];
+                    foreach (var (rect, label) in rects)
+                    {
+                        if (label.Content != OldContent)
+                            tmp2.Add((rect, label));
+                        else
+                        {
+                            var help = new LabelItem()
+                            {
+                                Content = SelectedButton.Text,
+                                Background = label.Background
+                            };
+                            tmp2.Add((rect, help));
+                        }
+                    }
+                    RectanglesOfImage[img].Clear();
+                    RectanglesOfImage[img].AddRange(tmp2);
+                }
             }
+
         }
-        
+
         private void RemoveCommand(object sender, RoutedEventArgs e)
         {
             if (LabelWithMenu != null)
@@ -203,19 +250,20 @@ namespace wpf2
                 foreach (var img in Images)
                 {
                     var rects = RectanglesOfImage[img];
-                    foreach (var (rect, label) in  rects)
+                    foreach (var (rect, label) in rects)
                     {
                         if (label.Content != LabelWithMenu.Content)
                             tmp.Add((rect, label));
                     }
                     rects.Clear();
                     rects.AddRange(tmp);
+                    RectanglesOfImage[img] = rects;
                 }
                 Dictionary<(CroppedBitmap, string), MyImage> tmp2 = new Dictionary<(CroppedBitmap, string), MyImage>();
-                
+
                 foreach (var pair in CroppedBitmaps)
                 {
-                    if(pair.Key.label != LabelWithMenu.Content)
+                    if (pair.Key.label != LabelWithMenu.Content)
                     {
                         tmp2.Add(pair.Key, pair.Value);
                     }
@@ -225,7 +273,17 @@ namespace wpf2
                 DrawingCanvas.Children.Clear();
                 DrawingCanvas.Children.Add(ImageOnCanvas);
                 foreach (var rect in RectanglesOfImage[SelectedImage])
+                {
+                    if (rect.Item1.Parent != null)
+                    {
+                        var parent = rect.Item1.Parent as Panel;
+                        if (parent != null)
+                        {
+                            parent.Children.Remove(rect.Item1);
+                        }
+                    }
                     DrawingCanvas.Children.Add(rect.Item1);
+                }
                 LabelWithMenu = null;
             }
         }
@@ -235,7 +293,7 @@ namespace wpf2
             int i = ImageList.SelectedIndex;
             if (i == -1) return;
             ImageList.SelectedIndex = i - 1;
-        
+
         }
 
         private void FinishClick(object sender, RoutedEventArgs e)
@@ -248,7 +306,7 @@ namespace wpf2
             string path;
             foreach (var img in CroppedBitmaps)
             {
-                
+                i = 0;
                 BitmapEncoder pngEncoder = new PngBitmapEncoder();
                 pngEncoder.Frames.Add(BitmapFrame.Create(img.Key.bitmap));
 
@@ -284,8 +342,15 @@ namespace wpf2
 
             foreach (var rect in tmp)
             {
+                if (VisualTreeHelper.GetParent(rect.Item1) != null)
+                {
+                    var parent = VisualTreeHelper.GetParent(rect.Item1) as Panel;
+                    if (parent != null)
+                    {
+                        parent.Children.Remove(rect.Item1);
+                    }
+                }
                 DrawingCanvas.Children.Add(rect.Item1);
-
             }
             if (ImageList.Items.Count == 1) return;
 
@@ -298,16 +363,21 @@ namespace wpf2
 
         private void ChooseFolderClick(object sender, RoutedEventArgs e)
         {
-            var dlg = new FolderPicker();
-            dlg.InputPath = @"c:\users";
-
-            if (dlg.ShowDialog() == true)
+            OpenFolderDialog fileDialog = new OpenFolderDialog();
+            bool? success = fileDialog.ShowDialog();
+            if (success == true)
             {
-                ChosenDir = dlg.ResultPath;
-                PathTextBox.Text = ChosenDir;
+                string path = fileDialog.FolderName;
+                PathTextBox.Text = path;
                 FinishButton.IsEnabled = true;
             }
-
+        }
+        private void FinishEnableDisable(object sender, RoutedEventArgs e)
+        {
+            if (System.IO.Path.Exists(PathTextBox.Text)) 
+            {
+                FinishButton.IsEnabled = true;
+            }
         }
     }
 
@@ -369,4 +439,5 @@ namespace wpf2
         }
     }
 }
+
     
