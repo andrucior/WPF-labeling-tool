@@ -293,7 +293,6 @@ namespace wpf2
             int i = ImageList.SelectedIndex;
             if (i == -1) return;
             ImageList.SelectedIndex = i - 1;
-
         }
 
         private void FinishClick(object sender, RoutedEventArgs e)
